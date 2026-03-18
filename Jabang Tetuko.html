@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skyworld Indonesia| Jabang Tetuko</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        /* Reset & Scroll Behavior */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: #090a0f;
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            padding-bottom: 40px; 
+        }
+
+        /* --- PARALLAX BACKGROUND SYSTEM --- */
+        .stars-bg {
+            position: fixed; /* Latar belakang tetap di tempat, isinya yang bergerak */
+            top: 0; left: 0; width: 100%; height: 100vh; z-index: -1;
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+            overflow: hidden;
+        }
+        
+        /* Area bintang dibuat lebih besar dari layar agar tidak terpotong saat digeser JS */
+        .stars-layer {
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background-repeat: repeat;
+        }
+
+        /* Lapisan 1: Bintang Jauh (Kecil, Redup, Bergerak Paling Lambat) */
+        .layer-1 {
+            background-image: radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+                              radial-gradient(1px 1px at 150px 120px, #ffffff, rgba(0,0,0,0));
+            background-size: 200px 200px;
+            opacity: 0.3;
+        }
+
+        /* Lapisan 2: Bintang Tengah (Sedang, Bergerak Agak Cepat) */
+        .layer-2 {
+            background-image: radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+                              radial-gradient(2px 2px at 100px 150px, #ffffff, rgba(0,0,0,0));
+            background-size: 350px 350px;
+            opacity: 0.5;
+        }
+
+        /* Lapisan 3: Bintang Dekat (Besar, Aksen Cyan, Bergerak Paling Cepat) */
+        .layer-3 {
+            background-image: radial-gradient(3px 3px at 90px 40px, #00ffff, rgba(0,0,0,0)),
+                              radial-gradient(2px 2px at 200px 90px, #bc13fe, rgba(0,0,0,0));
+            background-size: 500px 500px;
+            opacity: 0.8;
+        }
+		
+		/* --- BARU: Indikator Monitor Alert (Online Status) --- */
+        .status-monitor {
+            position: flex-direction; /* Tetap di posisi saat di-scroll */
+            top: 50px;
+            right: 100px;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 20, 0, 0.5); /* Latar belakang hijau gelap transparan */
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+            z-index: 1000; /* Pastikan selalu di depan */
+            font-family: 'Share Tech Mono', monospace; /* Font ala kode komputer */
+            pointer-events: none; /* User bisa klik tembus elemen ini */
+        }
+
+        .status-dot-wrapper {
+            position: relative;
+            width: 15px;
+            height: 15px;
+            margin-right: 12px;
+        }
+
+        /* Titik Hijau Inti */
+        .status-dot {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #00ff00; /* Hijau Terang */
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        /* Efek Pulse Lingkar Luar (Alert/Scan) */
+        .status-pulse {
+            position: absolute;
+            top: -2px; /* Sedikit lebih besar dari titik inti */
+            left: -2px;
+            width: 19px; /* Core size (15px) + Offset (2px * 2) */
+            height: 19px;
+            border: 2px solid #00ff00;
+            border-radius: 50%;
+            opacity: 0;
+            /* Memanggil Animasi Pulse Alert */
+            animation: alertPulse 1.5s infinite;
+        }
+
+        .status-text {
+            color: #00ff00;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        /* Keyframes untuk Animasi Alert Pulse (Melingkar keluar dan pudar) */
+        @keyframes alertPulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(2.5); /* Membesar */
+                opacity: 0; /* Pudar total */
+            }
+        }
+        /* ---------------------------------------------------- */
+
+        /* Header / Navigasi */
+        header {
+            position: flex; top: 0; left: 0; width: 100%; padding: 20px 50px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(9, 10, 15, 0.7); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2); z-index: 999;
+        }
+        .logo { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: #00ffff; text-shadow: 0 0 10px rgba(0, 255, 255, 0.7); }
+        nav a { color: #e0e0e0; text-decoration: none; margin-left: 30px; font-size: 1.1rem; transition: color 0.3s ease; }
+        nav a:hover { color: #bc13fe; }
+
+        /* Struktur Scrollytelling Apple-Style */
+        .scroll-section {
+            min-height: 120vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            padding: 0 20px; position: relative;
+        }
+
+        /* Animasi Reveal (Masuk dari bawah) */
+        .reveal {
+            opacity: 0; transform: translateY(80px);
+            transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .delay-1 { transition-delay: 0.2s; }
+        .delay-2 { transition-delay: 0.4s; }
+
+        /* Tipografi & Tombol */
+        h1, h2 { font-family: 'Orbitron', sans-serif; background: linear-gradient(90deg, #00ffff, #bc13fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; margin-bottom: 20px; }
+        .hero-title { font-size: 4.5rem; }
+        .section-title { font-size: 3rem; }
+        p { font-size: 1.5rem; max-width: 700px; margin-bottom: 40px; color: #b0c4de; line-height: 1.6; }
+        
+        .btn-pulse {
+            display: inline-block; padding: 15px 40px; font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem; color: #00ffff; text-decoration: none; text-transform: uppercase;
+            border: 2px solid #00ffff; border-radius: 5px; transition: all 0.3s ease; animation: buttonPulse 2s infinite;
+        }
+        .btn-pulse:hover { background: #00ffff; color: #000; animation: none; }
+        @keyframes buttonPulse { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0.7); } 70% { box-shadow: 0 0 0 25px rgba(0, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0); } }
+
+        /* Ticker Data Stream */
+        .ticker-wrap { position: fixed; bottom: 0; left: 0; width: 100%; height: 40px; background: rgba(0, 0, 0, 0.8); border-top: 1px solid rgba(0, 255, 255, 0.4); display: flex; align-items: center; font-family: 'Share Tech Mono', monospace; z-index: 1000; }
+        .ticker-move { display: inline-block; white-space: nowrap; animation: ticker 30s linear infinite; }
+        .ticker-item { display: inline-block; padding: 0 50px; color: #00ffff; font-size: 0.95rem; }
+        @keyframes ticker { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+    </style>
+</head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<body>
+<div class="status-monitor">
+        <div class="status-dot-wrapper">
+            <div class="status-dot"></div>
+            <div class="status-pulse"></div> </div>
+        <div class="status-text">System Online | Scan Literate...</div>
+    </div>
+
+    <div class="stars-bg">
+        <div class="stars-layer layer-1" id="star-layer-1"></div>
+        <div class="stars-layer layer-2" id="star-layer-2"></div>
+        <div class="stars-layer layer-3" id="star-layer-3"></div>
+    </div>
+
+    <header>
+        <div class="logo">Skyworld Indonesia</div>
+        <nav>
+            <a href="#hero">Judul</a>
+            <a href="#katalog">Sejarah</a>
+            <a href="#inisiasi">Inisiasi</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero" class="scroll-section">
+            <h1 class="hero-title reveal">Jabang Tetuko</h1>
+			<p class="reveal delay-1"></p>
+            <p class="reveal delay-1">
+</p>
+        </section>
+
+        <section id="katalog" class="scroll-section">
+            <h2 class="section-title reveal">Sejarah</h2>
+            <p class="reveal delay-1">Seorang bayi terlahir sebagai putra SANG BIMA (Werkudara atau Bratasena) Salah seorang Ksatria  Pandawa dengan istrinya Dewi Arimbi. Keistimewaan sang bayi sudah terlihat sejak lahir, tali pusarnya tak mampu diputus oleh segala macam pusaka, bahkakn sampai selama satu tahun.
+	Hingga saatnya sharing sebuah pusaka bernama Konta (Kuntawijayandanu) yang berasal dari Kayu MAstab yang dapat memutuskannya untuk kemudian melebur dalam tubuhnya. Bayi itu bernama TETUKO.Pusaka Konta (Badaltulak : Jw) pemberian Dewa Indra kepada Adipati. Karena itulah yang kelak akan menewaskan Gatotakca dalam perang Bhatarayudha.
+</p>
+        </section>
+
+        <section id="inisiasi" class="scroll-section">
+            <h2 class="section-title reveal">Sistem Siap Diluncurkan</h2>
+            <p class="reveal delay-1">Status mental pembaca: Stabil. Sinkronisasi data: 100%. Klik tombol di bawah untuk memulai transfer data ke memori kortikal Anda.</p>
+            <a href="#" class="btn-pulse reveal delay-2">Inisiasi Perjalanan</a>
+        </section>
+    </main>
+
+    <div class="ticker-wrap">
+        <div class="ticker-move">
+            <div class="ticker-item">[LOG DATA] Arsip baru ditambahkan.</div>
+            <div class="ticker-item">[TRANSMISI] Terjemahan Universal Aktif.</div>
+            <div class="ticker-item">[SISTEM] Sinkronisasi optimal. Lanjutkan eksplorasi.</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // 1. SCRIPT SCOLL TELLING (Muncul perlahan)
+            const reveals = document.querySelectorAll('.reveal');
+            const revealOnScroll = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.3, rootMargin: "0px 0px -50px 0px" });
+
+            reveals.forEach(reveal => revealOnScroll.observe(reveal));
+
+            // 2. SCRIPT PARALLAX (Bintang bergerak)
+            const layer1 = document.getElementById('star-layer-1');
+            const layer2 = document.getElementById('star-layer-2');
+            const layer3 = document.getElementById('star-layer-3');
+
+            window.addEventListener('scroll', function() {
+                // Mendapatkan seberapa jauh user men-scroll dari atas
+                let scrollPosition = window.pageYOffset;
+
+                // Menggeser setiap layer bintang dengan kecepatan berbeda (mengalikan scrollPosition)
+                // Layer 1 sangat lambat (0.1), Layer 3 paling cepat (0.5)
+                layer1.style.transform = 'translateY(' + scrollPosition * 0.1 + 'px)';
+                layer2.style.transform = 'translateY(' + scrollPosition * 0.3 + 'px)';
+                layer3.style.transform = 'translateY(' + scrollPosition * 0.5 + 'px)';
+            });
+        });
+		
+    </script>
+
+</body>
+</html>
